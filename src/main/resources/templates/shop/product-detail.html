@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('商品详情')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav}"></header>
+
+<main class="container detail-main">
+    <nav class="breadcrumb">
+        <a th:href="@{/}"><i class="bi bi-house-door" aria-hidden="true"></i> 首页</a>
+        <span th:if="${product.categoryPath() != ''}" th:text="' / ' + ${product.categoryPath()}"> / 分类</span>
+        <span th:text="' / ' + ${product.name()}"> / 商品</span>
+    </nav>
+
+    <section class="detail-grid">
+        <div class="gallery">
+            <div class="gallery-main">
+                <img id="mainImage" th:src="${'/' + product.coverImage()}" th:alt="${product.name()}"
+                     onerror="this.src='/images/placeholder.svg'">
+            </div>
+            <div class="gallery-thumbs" th:if="${!#lists.isEmpty(product.images())}">
+                <button type="button" class="thumb" th:each="img : ${product.images()}"
+                        th:attr="data-src=${'/' + img.path()}"
+                        onclick="document.getElementById('mainImage').src = this.dataset.src">
+                    <img th:src="${'/' + img.path()}" th:alt="${img.alt() ?: product.name()}"
+                         onerror="this.src='/images/placeholder.svg'">
+                </button>
+            </div>
+        </div>
+
+        <div class="card detail-info">
+            <h1 th:text="${product.name()}">商品名称</h1>
+            <p class="muted" th:if="${product.summary()}" th:text="${product.summary()}">商品简介</p>
+
+            <div class="detail-price" th:text="${'¥' + #numbers.formatDecimal(product.price(), 1, 2)}">¥0.00</div>
+
+            <dl class="info-list">
+                <div>
+                    <dt><i class="bi bi-box-seam" aria-hidden="true"></i> 库存</dt>
+                    <dd th:text="${product.stock() > 0 ? '有货（' + product.stock() + ' 件）' : '暂时缺货'}">有货</dd>
+                </div>
+                <div>
+                    <dt><i class="bi bi-tag" aria-hidden="true"></i> 分类</dt>
+                    <dd th:text="${product.categoryPath() != '' ? product.categoryPath() : '-'}">-</dd>
+                </div>
+            </dl>
+
+            <button type="button" class="button button-block" disabled>
+                <i class="bi bi-cart-plus" aria-hidden="true"></i> 加入购物车（开发中）
+            </button>
+            <p class="muted detail-note">购物车与下单功能将在后续模块接入。</p>
+        </div>
+    </section>
+
+    <section class="card detail-description">
+        <h2><i class="bi bi-file-text" aria-hidden="true"></i> 商品详情</h2>
+        <p class="description" th:text="${product.description() ?: '暂无详细描述'}">暂无详细描述</p>
+    </section>
+</main>
+</body>
+</html>

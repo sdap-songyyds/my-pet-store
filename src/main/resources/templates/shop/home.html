@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('首页')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav}"></header>
+
+<main>
+    <section class="hero">
+        <div class="container hero-inner">
+            <p class="hero-kicker"><i class="bi bi-stars" aria-hidden="true"></i> MyCourseStore</p>
+            <h1>精选商品，轻松选购</h1>
+            <p class="hero-sub">课程实验商城 · 主页推荐与商品详情展示</p>
+        </div>
+    </section>
+
+    <div class="container home-content">
+        <section>
+            <div class="section-head">
+                <h2><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i> 商品分类</h2>
+            </div>
+
+            <div class="category-list" th:if="${!#lists.isEmpty(categories)}">
+                <div class="category-group" th:each="group : ${categories}">
+                    <span class="category-parent">
+                        <i class="bi bi-folder2-open" aria-hidden="true"></i>
+                        <span th:text="${group.name()}">分类</span>
+                    </span>
+                    <span class="category-children" th:if="${!#lists.isEmpty(group.children())}">
+                        <span class="chip" th:each="child : ${group.children()}" th:text="${child.name()}">子分类</span>
+                    </span>
+                </div>
+            </div>
+            <p class="muted" th:if="${#lists.isEmpty(categories)}">暂无分类</p>
+        </section>
+
+        <section>
+            <div class="section-head">
+                <h2><i class="bi bi-fire" aria-hidden="true"></i> 推荐商品</h2>
+                <span class="muted" th:if="${!#lists.isEmpty(products)}"
+                      th:text="${'共 ' + #lists.size(products) + ' 件在售商品'}"></span>
+            </div>
+
+            <div class="product-grid" th:if="${!#lists.isEmpty(products)}">
+                <a class="product-card" th:each="p : ${products}"
+                   th:href="@{/products/{id}(id=${p.id()})}">
+                    <div class="product-card-media">
+                        <img th:src="${'/' + p.coverImage()}" th:alt="${p.name()}" loading="lazy"
+                             onerror="this.src='/images/placeholder.svg'">
+                    </div>
+                    <div class="product-card-body">
+                        <h3 th:text="${p.name()}">商品名称</h3>
+                        <p class="muted product-summary" th:text="${p.summary() ?: '暂无简介'}">简介</p>
+                        <div class="product-card-meta">
+                            <span class="price" th:text="${'¥' + #numbers.formatDecimal(p.price(), 1, 2)}">¥0.00</span>
+                            <span class="stock-tag" th:classappend="${p.stock() > 0 ? '' : 'stock-out'}">
+                                <i class="bi" th:classappend="${p.stock() > 0 ? 'bi-check-circle' : 'bi-x-circle'}"
+                                   aria-hidden="true"></i>
+                                <span th:text="${p.stock() > 0 ? '有货' : '缺货'}">有货</span>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="empty-state" th:if="${#lists.isEmpty(products)}">
+                <i class="bi bi-inboxes empty-icon" aria-hidden="true"></i>
+                <p>暂无在售商品</p>
+                <p class="muted">导入演示数据后即可看到推荐商品。</p>
+            </div>
+        </section>
+    </div>
+</main>
+</body>
+</html>

@@ -31,17 +31,12 @@ public class AuthPageController {
         this.cookieFactory = cookieFactory;
     }
 
-    @GetMapping("/")
-    public String home(@CurrentUser StoreUser user) {
-        return user == null ? "redirect:/login" : "redirect:/account";
-    }
-
     @GetMapping("/login")
     public String loginPage(@CurrentUser StoreUser user,
                             @RequestParam(required = false) String redirect,
                             Model model) {
         if (user != null) {
-            return "redirect:/account";
+            return "redirect:/";
         }
         model.addAttribute("redirect", safeRedirect(redirect));
         return "auth/login";
@@ -72,7 +67,7 @@ public class AuthPageController {
     @GetMapping("/register")
     public String registerPage(@CurrentUser StoreUser user) {
         if (user != null) {
-            return "redirect:/account";
+            return "redirect:/";
         }
         return "auth/register";
     }
@@ -89,7 +84,7 @@ public class AuthPageController {
         try {
             AuthResponse auth = authService.register(form);
             response.addHeader(HttpHeaders.SET_COOKIE, cookieFactory.create(auth.token()).toString());
-            return "redirect:/account";
+            return "redirect:/";
         } catch (ApiException ex) {
             model.addAttribute("error", ex.getMessage());
             return "auth/register";
@@ -111,6 +106,6 @@ public class AuthPageController {
                 && redirect.indexOf('\n') < 0) {
             return redirect;
         }
-        return "/account";
+        return "/";
     }
 }
