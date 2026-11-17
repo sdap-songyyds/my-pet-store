@@ -1,6 +1,9 @@
 spring:
   application:
     name: MyCourseStore
+  config:
+    # 读取项目根目录的 .env（properties 格式）；找不到时忽略，仍可用系统环境变量
+    import: optional:file:./.env[.properties]
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/mycoursestore}
     username: ${DB_USERNAME:postgres}
@@ -10,3 +13,15 @@ spring:
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
+
+server:
+  # .env 里是 SERVER_PORT，这里显式取一次（普通属性源不做环境变量名到 server.port 的宽松映射）
+  port: ${SERVER_PORT:8080}
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:dev-only-secret-change-me-0123456789abcdef}
+    expiration: 2h
+    issuer: mycoursestore
+    cookie-name: AUTH_TOKEN
+    cookie-secure: false
