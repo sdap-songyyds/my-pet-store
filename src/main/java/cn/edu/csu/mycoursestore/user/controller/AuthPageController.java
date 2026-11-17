@@ -31,6 +31,11 @@ public class AuthPageController {
         this.cookieFactory = cookieFactory;
     }
 
+    @GetMapping("/")
+    public String home(@CurrentUser StoreUser user) {
+        return user == null ? "redirect:/login" : "redirect:/account";
+    }
+
     @GetMapping("/login")
     public String loginPage(@CurrentUser StoreUser user,
                             @RequestParam(required = false) String redirect,
