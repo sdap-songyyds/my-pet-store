@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${title} + ' · MyCourseStore'">MyCourseStore</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<header th:fragment="nav" class="topbar">
+    <div class="container topbar-inner">
+        <a th:if="${currentUser != null}" class="brand" th:href="@{/account}">MyCourseStore</a>
+        <a th:if="${currentUser == null}" class="brand" th:href="@{/login}">MyCourseStore</a>
+        <nav class="nav-links">
+            <th:block th:if="${currentUser != null}">
+                <span class="nav-user" th:text="${currentUser.getDisplayName()}">用户</span>
+                <a th:href="@{/account}">用户中心</a>
+                <form th:action="@{/logout}" method="post" class="inline-form">
+                    <button type="submit" class="link-button">退出</button>
+                </form>
+            </th:block>
+            <th:block th:if="${currentUser == null}">
+                <a th:href="@{/login}">登录</a>
+                <a class="button button-small" th:href="@{/register}">注册</a>
+            </th:block>
+        </nav>
+    </div>
+</header>
+</body>
+</html>

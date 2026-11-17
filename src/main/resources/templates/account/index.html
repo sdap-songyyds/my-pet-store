@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('用户中心')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav}"></header>
+
+<main class="container account-main">
+    <div class="alert alert-success" th:if="${success}" th:text="${success}"></div>
+
+    <section class="card summary-card">
+        <div class="avatar" th:text="${#strings.substring(currentUser.getDisplayName(), 0, 1)}">A</div>
+        <div class="summary-body">
+            <h1 th:text="${currentUser.getDisplayName()}">显示名称</h1>
+            <p class="muted" th:text="${'@' + currentUser.getUsername()}">@username</p>
+        </div>
+        <span class="badge" th:text="${roleLabel}">顾客</span>
+    </section>
+
+    <div class="account-grid">
+        <section class="card">
+            <h2>个人资料</h2>
+            <p class="muted">用户名创建后不可修改。</p>
+
+            <div class="alert alert-error"
+                 th:if="${profileGlobalErrors != null and !#lists.isEmpty(profileGlobalErrors)}"
+                 th:text="${#strings.listJoin(profileGlobalErrors, '；')}"></div>
+
+            <form th:action="@{/account/profile}" method="post" class="form">
+                <label class="field">
+                    <span>显示名称</span>
+                    <input type="text" name="displayName" required maxlength="50"
+                           th:value="${profileForm != null ? profileForm.displayName() : currentUser.getDisplayName()}">
+                    <small class="field-error"
+                           th:if="${profileFieldErrors != null and profileFieldErrors['displayName'] != null}"
+                           th:text="${#strings.listJoin(profileFieldErrors['displayName'], '；')}"></small>
+                </label>
+
+                <div class="field-row">
+                    <label class="field">
+                        <span>邮箱</span>
+                        <input type="email" name="email" maxlength="100"
+                               th:value="${profileForm != null ? profileForm.email() : (currentUser.getEmail() ?: '')}">
+                        <small class="field-error"
+                               th:if="${profileFieldErrors != null and profileFieldErrors['email'] != null}"
+                               th:text="${#strings.listJoin(profileFieldErrors['email'], '；')}"></small>
+                    </label>
+
+                    <label class="field">
+                        <span>手机号</span>
+                        <input type="text" name="phone" maxlength="30"
+                               th:value="${profileForm != null ? profileForm.phone() : (currentUser.getPhone() ?: '')}">
+                        <small class="field-error"
+                               th:if="${profileFieldErrors != null and profileFieldErrors['phone'] != null}"
+                               th:text="${#strings.listJoin(profileFieldErrors['phone'], '；')}"></small>
+                    </label>
+                </div>
+
+                <button type="submit" class="button">保存资料</button>
+            </form>
+        </section>
+
+        <section class="card">
+            <h2>修改密码</h2>
+            <p class="muted">更新后会换发登录凭证；已签发的旧凭证在过期前仍然有效。</p>
+
+            <div class="alert alert-error"
+                 th:if="${passwordGlobalErrors != null and !#lists.isEmpty(passwordGlobalErrors)}"
+                 th:text="${#strings.listJoin(passwordGlobalErrors, '；')}"></div>
+
+            <form th:action="@{/account/password}" method="post" class="form">
+                <label class="field">
+                    <span>当前密码</span>
+                    <input type="password" name="currentPassword" autocomplete="current-password" required>
+                    <small class="field-error"
+                           th:if="${passwordFieldErrors != null and passwordFieldErrors['currentPassword'] != null}"
+                           th:text="${#strings.listJoin(passwordFieldErrors['currentPassword'], '；')}"></small>
+                </label>
+
+                <label class="field">
+                    <span>新密码</span>
+                    <input type="password" name="newPassword" autocomplete="new-password" required
+                           minlength="8" maxlength="72">
+                    <small class="hint">8-72 个字符</small>
+                    <small class="field-error"
+                           th:if="${passwordFieldErrors != null and passwordFieldErrors['newPassword'] != null}"
+                           th:text="${#strings.listJoin(passwordFieldErrors['newPassword'], '；')}"></small>
+                </label>
+
+                <label class="field">
+                    <span>确认新密码</span>
+                    <input type="password" name="confirmPassword" autocomplete="new-password" required
+                           minlength="8" maxlength="72">
+                    <small class="field-error"
+                           th:if="${passwordFieldErrors != null and passwordFieldErrors['confirmPassword'] != null}"
+                           th:text="${#strings.listJoin(passwordFieldErrors['confirmPassword'], '；')}"></small>
+                </label>
+
+                <button type="submit" class="button">更新密码</button>
+            </form>
+        </section>
+    </div>
+
+    <section class="card">
+        <h2>账号信息</h2>
+        <dl class="info-list">
+            <div>
+                <dt>用户名</dt>
+                <dd th:text="${currentUser.getUsername()}">username</dd>
+            </div>
+            <div>
+                <dt>角色</dt>
+                <dd th:text="${roleLabel}">顾客</dd>
+            </div>
+            <div>
+                <dt>注册时间</dt>
+                <dd th:text="${joinedAt}">2026-01-01 00:00</dd>
+            </div>
+        </dl>
+        <form th:action="@{/logout}" method="post" class="logout-row">
+            <button type="submit" class="button button-danger">退出登录</button>
+        </form>
+    </section>
+</main>
+</body>
+</html>

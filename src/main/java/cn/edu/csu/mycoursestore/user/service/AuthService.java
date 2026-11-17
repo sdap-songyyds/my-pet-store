@@ -3,8 +3,10 @@ package cn.edu.csu.mycoursestore.user.service;
 import cn.edu.csu.mycoursestore.common.ApiException;
 import cn.edu.csu.mycoursestore.security.JwtTokenProvider;
 import cn.edu.csu.mycoursestore.user.dto.AuthResponse;
+import cn.edu.csu.mycoursestore.user.dto.ChangePasswordRequest;
 import cn.edu.csu.mycoursestore.user.dto.LoginRequest;
 import cn.edu.csu.mycoursestore.user.dto.RegisterRequest;
+import cn.edu.csu.mycoursestore.user.dto.UpdateProfileRequest;
 import cn.edu.csu.mycoursestore.user.dto.UserProfile;
 import cn.edu.csu.mycoursestore.user.entity.StoreUser;
 import cn.edu.csu.mycoursestore.user.entity.UserRole;
@@ -16,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Locale;
 
 @Service
@@ -66,8 +69,40 @@ public class AuthService {
         return authResponse(user);
     }
 
+    public UserProfile updateProfile(long userId, UpdateProfileRequest request) {
+        StoreUser user = requireUser(userId);
+        user.setDisplayName(request.displayName().trim());
+        user.setEmail(blankToNull(request.email()));
+        user.setPhone(blankToNull(request.phone()));
+        user.setUpdatedAt(LocalDateTime.now());
+        userMapper.updateById(user);
+        return UserProfile.from(user);
+    }
+
+    public AuthResponse changePassword(long userId, ChangePasswordRequest request) {
+        StoreUser user = requireUser(userId);
+        if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_CURRENT_PASSWORD", "当前密码不正确");
+        }
+        if (passwordEncoder.matches(request.newPassword(), user.getPasswordHash())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "PASSWORD_UNCHANGED", "新密码不能与当前密码相同");
+        }
+        user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        user.setUpdatedAt(LocalDateTime.now());
+        userMapper.updateById(user);
+        return authResponse(user);
+    }
+
     public static String normalizeUsername(String username) {
         return username.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private StoreUser requireUser(long userId) {
+        StoreUser user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "登录已失效，请重新登录");
+        }
+        return user;
     }
 
     private AuthResponse authResponse(StoreUser user) {

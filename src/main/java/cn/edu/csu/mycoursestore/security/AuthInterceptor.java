@@ -7,12 +7,17 @@ import cn.edu.csu.mycoursestore.user.mapper.StoreUserMapper;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.util.UriUtils;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 @Component
@@ -31,12 +36,37 @@ public class AuthInterceptor implements HandlerInterceptor {
     }
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException {
         boolean authenticated = authenticate(request);
         if (!authenticated && requiresAuth(handler)) {
-            throw new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "请先登录");
+            if (isJsonHandler(handler)) {
+                throw new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "请先登录");
+            }
+            redirectToLogin(request, response);
+            return false;
         }
         return true;
+    }
+
+    private void redirectToLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String target = request.getRequestURI();
+        String contextPath = request.getContextPath();
+        if (!contextPath.isEmpty() && target.startsWith(contextPath)) {
+            target = target.substring(contextPath.length());
+        }
+        if (request.getQueryString() != null) {
+            target += "?" + request.getQueryString();
+        }
+        response.sendRedirect(contextPath + "/login?redirect="
+                + UriUtils.encodeQueryParam(target, StandardCharsets.UTF_8));
+    }
+
+    private boolean isJsonHandler(Object handler) {
+        if (!(handler instanceof HandlerMethod handlerMethod)) {
+            return false;
+        }
+        return handlerMethod.hasMethodAnnotation(ResponseBody.class)
+                || AnnotatedElementUtils.hasAnnotation(handlerMethod.getBeanType(), ResponseBody.class);
     }
 
     private boolean authenticate(HttpServletRequest request) {

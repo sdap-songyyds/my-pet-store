@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('登录')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav}"></header>
+
+<main class="auth-main">
+    <section class="card auth-card">
+        <h1>登录</h1>
+        <p class="muted">顾客与管理员使用同一套账号登录。</p>
+
+        <div class="alert alert-error" th:if="${error}" th:text="${error}"></div>
+
+        <form th:action="@{/login}" method="post" class="form">
+            <input type="hidden" name="redirect" th:value="${redirect}">
+
+            <label class="field">
+                <span>用户名</span>
+                <input type="text" name="username" autocomplete="username" required autofocus
+                       th:value="${form != null ? form.username() : ''}">
+                <small class="field-error"
+                       th:if="${loginFieldErrors != null and loginFieldErrors['username'] != null}"
+                       th:text="${#strings.listJoin(loginFieldErrors['username'], '；')}"></small>
+            </label>
+
+            <label class="field">
+                <span>密码</span>
+                <input type="password" name="password" autocomplete="current-password" required>
+                <small class="field-error"
+                       th:if="${loginFieldErrors != null and loginFieldErrors['password'] != null}"
+                       th:text="${#strings.listJoin(loginFieldErrors['password'], '；')}"></small>
+            </label>
+
+            <button type="submit" class="button button-block">登录</button>
+        </form>
+
+        <p class="muted auth-switch">还没有账号？<a th:href="@{/register}">立即注册</a></p>
+    </section>
+</main>
+</body>
+</html>

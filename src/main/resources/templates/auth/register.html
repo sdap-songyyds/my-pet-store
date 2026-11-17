@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('注册')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav}"></header>
+
+<main class="auth-main">
+    <section class="card auth-card">
+        <h1>注册</h1>
+        <p class="muted">创建账号后会自动登录。</p>
+
+        <div class="alert alert-error" th:if="${error}" th:text="${error}"></div>
+
+        <form th:action="@{/register}" method="post" class="form">
+            <label class="field">
+                <span>用户名</span>
+                <input type="text" name="username" autocomplete="username" required autofocus
+                       minlength="3" maxlength="30"
+                       th:value="${form != null ? form.username() : ''}">
+                <small class="hint">字母、数字或下划线，3-30 个字符</small>
+                <small class="field-error"
+                       th:if="${registerFieldErrors != null and registerFieldErrors['username'] != null}"
+                       th:text="${#strings.listJoin(registerFieldErrors['username'], '；')}"></small>
+            </label>
+
+            <label class="field">
+                <span>密码</span>
+                <input type="password" name="password" autocomplete="new-password" required
+                       minlength="8" maxlength="72">
+                <small class="hint">8-72 个字符</small>
+                <small class="field-error"
+                       th:if="${registerFieldErrors != null and registerFieldErrors['password'] != null}"
+                       th:text="${#strings.listJoin(registerFieldErrors['password'], '；')}"></small>
+            </label>
+
+            <label class="field">
+                <span>显示名称</span>
+                <input type="text" name="displayName" required maxlength="50"
+                       th:value="${form != null ? form.displayName() : ''}">
+                <small class="field-error"
+                       th:if="${registerFieldErrors != null and registerFieldErrors['displayName'] != null}"
+                       th:text="${#strings.listJoin(registerFieldErrors['displayName'], '；')}"></small>
+            </label>
+
+            <div class="field-row">
+                <label class="field">
+                    <span>邮箱（选填）</span>
+                    <input type="email" name="email" maxlength="100"
+                           th:value="${form != null ? form.email() : ''}">
+                    <small class="field-error"
+                           th:if="${registerFieldErrors != null and registerFieldErrors['email'] != null}"
+                           th:text="${#strings.listJoin(registerFieldErrors['email'], '；')}"></small>
+                </label>
+
+                <label class="field">
+                    <span>手机号（选填）</span>
+                    <input type="text" name="phone" maxlength="30"
+                           th:value="${form != null ? form.phone() : ''}">
+                    <small class="field-error"
+                           th:if="${registerFieldErrors != null and registerFieldErrors['phone'] != null}"
+                           th:text="${#strings.listJoin(registerFieldErrors['phone'], '；')}"></small>
+                </label>
+            </div>
+
+            <button type="submit" class="button button-block">注册并登录</button>
+        </form>
+
+        <p class="muted auth-switch">已有账号？<a th:href="@{/login}">去登录</a></p>
+    </section>
+</main>
+</body>
+</html>
