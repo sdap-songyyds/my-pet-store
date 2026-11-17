@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>cn.edu.csu</groupId>
-    <artifactId>MyPetStore</artifactId>
+    <artifactId>MyCourseStore</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>MyPetStore</name>
-    <description>MyPetStore</description>
+    <name>MyCourseStore</name>
+    <description>MyCourseStore</description>
     <url/>
     <licenses>
         <license/>
