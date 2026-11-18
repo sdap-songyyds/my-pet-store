@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('订单详情')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav}"></header>
+
+<main class="container order-main">
+    <div class="page-head">
+        <h1><i class="bi bi-receipt" aria-hidden="true"></i> 订单详情</h1>
+        <span class="status-badge" th:classappend="${'status-' + order.status()}"
+              th:text="${order.statusLabel()}">待支付</span>
+    </div>
+
+    <div class="alert alert-success" th:if="${success}" th:text="${success}"></div>
+    <div class="alert alert-error" th:if="${error}" th:text="${error}"></div>
+
+    <section class="card">
+        <h2><i class="bi bi-info-circle" aria-hidden="true"></i> 订单信息</h2>
+        <dl class="info-list">
+            <div>
+                <dt>订单号</dt>
+                <dd th:text="${order.orderNo()}">ORD000000</dd>
+            </div>
+            <div>
+                <dt>下单时间</dt>
+                <dd th:text="${order.createdAtText()}">2026-01-01 00:00</dd>
+            </div>
+            <div th:if="${order.paidAtText() != null}">
+                <dt>支付时间</dt>
+                <dd th:text="${order.paidAtText()}">2026-01-01 00:00</dd>
+            </div>
+            <div th:if="${order.cancelledAtText() != null}">
+                <dt>取消时间</dt>
+                <dd th:text="${order.cancelledAtText()}">2026-01-01 00:00</dd>
+            </div>
+            <div th:if="${order.shippedAtText() != null}">
+                <dt>发货时间</dt>
+                <dd th:text="${order.shippedAtText()}">2026-01-01 00:00</dd>
+            </div>
+            <div th:if="${order.completedAtText() != null}">
+                <dt>完成时间</dt>
+                <dd th:text="${order.completedAtText()}">2026-01-01 00:00</dd>
+            </div>
+        </dl>
+    </section>
+
+    <section class="card">
+        <h2><i class="bi bi-geo-alt" aria-hidden="true"></i> 收货信息</h2>
+        <dl class="info-list">
+            <div>
+                <dt>收货人</dt>
+                <dd th:text="${order.receiverName()}">张三</dd>
+            </div>
+            <div>
+                <dt>联系电话</dt>
+                <dd th:text="${order.receiverPhone()}">13800000000</dd>
+            </div>
+            <div>
+                <dt>收货地址</dt>
+                <dd th:text="${order.receiverAddress()}">地址</dd>
+            </div>
+        </dl>
+    </section>
+
+    <section class="card">
+        <h2><i class="bi bi-bag-check" aria-hidden="true"></i> 商品明细</h2>
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>商品</th>
+                    <th>单价</th>
+                    <th>数量</th>
+                    <th>小计</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="line : ${order.lines()}">
+                    <td>
+                        <div class="table-product">
+                            <img th:src="${'/' + line.coverImage()}" th:alt="${line.name()}"
+                                 onerror="this.src='/images/placeholder.svg'">
+                            <div>
+                                <a th:href="@{/products/{id}(id=${line.productId()})}"
+                                   th:text="${line.name()}">商品名称</a>
+                                <span class="muted" th:text="${line.sku()}">SKU</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td th:text="${'¥' + #numbers.formatDecimal(line.unitPrice(), 1, 2)}">¥0.00</td>
+                    <td th:text="${line.quantity()}">1</td>
+                    <td class="amount" th:text="${'¥' + #numbers.formatDecimal(line.lineAmount(), 1, 2)}">¥0.00</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="order-total-row">
+            <span>合计</span>
+            <span class="price" th:text="${'¥' + #numbers.formatDecimal(order.totalAmount(), 1, 2)}">¥0.00</span>
+        </div>
+    </section>
+
+    <section class="card" th:if="${order.paymentNo() != null}">
+        <h2><i class="bi bi-credit-card" aria-hidden="true"></i> 支付信息</h2>
+        <dl class="info-list">
+            <div>
+                <dt>支付方式</dt>
+                <dd>模拟支付</dd>
+            </div>
+            <div>
+                <dt>支付单号</dt>
+                <dd th:text="${order.paymentNo()}">PAY000000</dd>
+            </div>
+        </dl>
+    </section>
+
+    <div class="order-actions">
+        <a class="button button-ghost" th:href="@{/orders}">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i> 返回订单列表
+        </a>
+        <form th:if="${order.canPay()}" th:action="@{/orders/{id}/pay(id=${order.id()})}" method="post">
+            <button type="submit" class="button">
+                <i class="bi bi-credit-card" aria-hidden="true"></i> 模拟支付
+            </button>
+        </form>
+        <form th:if="${order.canCancel()}" th:action="@{/orders/{id}/cancel(id=${order.id()})}" method="post"
+              onsubmit="return confirm('确定取消该订单吗？库存将恢复。');">
+            <button type="submit" class="button button-danger">
+                <i class="bi bi-x-circle" aria-hidden="true"></i> 取消订单
+            </button>
+        </form>
+    </div>
+</main>
+</body>
+</html>

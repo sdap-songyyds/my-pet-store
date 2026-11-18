@@ -83,10 +83,14 @@
                 <span>合计</span>
                 <span th:text="${'¥' + #numbers.formatDecimal(cart.totalAmount(), 1, 2)}">¥0.00</span>
             </div>
-            <button type="button" class="button button-block" disabled>
-                <i class="bi bi-credit-card" aria-hidden="true"></i> 去结算（订单模块待接入）
+            <a th:if="${cart.checkoutReady()}" class="button button-block" th:href="@{/checkout}">
+                <i class="bi bi-credit-card" aria-hidden="true"></i> 去结算
+            </a>
+            <button th:if="${!cart.checkoutReady()}" type="button" class="button button-block" disabled>
+                <i class="bi bi-credit-card" aria-hidden="true"></i> 去结算
             </button>
-            <p class="muted summary-note">金额按商品当前价格计算，购物车不占用库存。</p>
+            <p class="muted summary-note" th:if="${!cart.checkoutReady()}">请先处理下架或库存不足的商品。</p>
+            <p class="muted summary-note" th:if="${cart.checkoutReady()}">金额按商品当前价格计算，购物车不占用库存。</p>
         </aside>
     </div>
 </main>

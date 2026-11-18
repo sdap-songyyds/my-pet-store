@@ -7,6 +7,7 @@ public record CartView(
         List<CartLine> lines,
         BigDecimal totalAmount,
         int totalQuantity,
-        int kinds
+        int kinds,
+        boolean checkoutReady
 ) {
 }

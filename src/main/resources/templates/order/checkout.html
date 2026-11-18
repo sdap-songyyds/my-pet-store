@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('确认订单')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav}"></header>
+
+<main class="container checkout-main">
+    <div class="page-head">
+        <h1><i class="bi bi-credit-card" aria-hidden="true"></i> 确认订单</h1>
+    </div>
+
+    <div class="alert alert-error" th:if="${error}" th:text="${error}"></div>
+    <div class="alert alert-error"
+         th:if="${checkoutGlobalErrors != null and !#lists.isEmpty(checkoutGlobalErrors)}"
+         th:text="${#strings.listJoin(checkoutGlobalErrors, '；')}"></div>
+
+    <form th:action="@{/orders}" method="post" class="checkout-layout">
+        <section class="card">
+            <h2><i class="bi bi-geo-alt" aria-hidden="true"></i> 收货信息</h2>
+            <div class="form">
+                <label class="field">
+                    <span>收货人</span>
+                    <input type="text" name="receiverName" maxlength="50" required
+                           th:value="${form != null ? form.receiverName() : ''}">
+                    <small class="field-error"
+                           th:if="${checkoutFieldErrors != null and checkoutFieldErrors['receiverName'] != null}"
+                           th:text="${#strings.listJoin(checkoutFieldErrors['receiverName'], '；')}"></small>
+                </label>
+
+                <label class="field">
+                    <span>联系电话</span>
+                    <input type="text" name="receiverPhone" maxlength="30" required
+                           th:value="${form != null ? form.receiverPhone() : ''}">
+                    <small class="field-error"
+                           th:if="${checkoutFieldErrors != null and checkoutFieldErrors['receiverPhone'] != null}"
+                           th:text="${#strings.listJoin(checkoutFieldErrors['receiverPhone'], '；')}"></small>
+                </label>
+
+                <label class="field">
+                    <span>收货地址</span>
+                    <textarea name="receiverAddress" rows="3" maxlength="255" required
+                              th:text="${form != null ? form.receiverAddress() : ''}"></textarea>
+                    <small class="field-error"
+                           th:if="${checkoutFieldErrors != null and checkoutFieldErrors['receiverAddress'] != null}"
+                           th:text="${#strings.listJoin(checkoutFieldErrors['receiverAddress'], '；')}"></small>
+                </label>
+            </div>
+            <p class="muted checkout-hint">本实验没有真实支付渠道，提交订单后可进行模拟支付。</p>
+        </section>
+
+        <aside class="card checkout-summary">
+            <h2><i class="bi bi-bag" aria-hidden="true"></i> 商品清单</h2>
+            <div class="checkout-lines">
+                <div class="checkout-line" th:each="line : ${cart.lines()}">
+                    <img th:src="${'/' + line.coverImage()}" th:alt="${line.name()}"
+                         onerror="this.src='/images/placeholder.svg'">
+                    <div class="checkout-line-body">
+                        <span class="checkout-line-name" th:text="${line.name()}">商品名称</span>
+                        <span class="muted"
+                              th:text="${'¥' + #numbers.formatDecimal(line.price(), 1, 2) + ' × ' + line.quantity()}">¥0.00 × 1</span>
+                    </div>
+                    <span class="checkout-line-amount"
+                          th:text="${'¥' + #numbers.formatDecimal(line.lineAmount(), 1, 2)}">¥0.00</span>
+                </div>
+            </div>
+
+            <div class="summary-row">
+                <span>商品件数</span>
+                <span th:text="${cart.totalQuantity()}">0</span>
+            </div>
+            <div class="summary-row summary-total">
+                <span>合计</span>
+                <span th:text="${'¥' + #numbers.formatDecimal(cart.totalAmount(), 1, 2)}">¥0.00</span>
+            </div>
+
+            <button type="submit" class="button button-block">
+                <i class="bi bi-check2-circle" aria-hidden="true"></i> 提交订单
+            </button>
+            <a class="button button-ghost button-block" th:href="@{/cart}">
+                <i class="bi bi-arrow-left" aria-hidden="true"></i> 返回购物车
+            </a>
+        </aside>
+    </form>
+</main>
+</body>
+</html>

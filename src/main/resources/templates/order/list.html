@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('我的订单')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav}"></header>
+
+<main class="container order-main">
+    <div class="page-head">
+        <h1><i class="bi bi-receipt" aria-hidden="true"></i> 我的订单</h1>
+        <span class="muted" th:if="${!#lists.isEmpty(orders)}"
+              th:text="${'共 ' + #lists.size(orders) + ' 笔订单'}"></span>
+    </div>
+
+    <div class="order-list" th:if="${!#lists.isEmpty(orders)}">
+        <article class="card order-card" th:each="o : ${orders}">
+            <div class="order-card-head">
+                <div class="order-card-meta">
+                    <span class="order-no" th:text="${o.orderNo()}">ORD000000</span>
+                    <span class="muted" th:text="${o.createdAtText()}">2026-01-01 00:00</span>
+                </div>
+                <span class="status-badge" th:classappend="${'status-' + o.status()}"
+                      th:text="${o.statusLabel()}">待支付</span>
+            </div>
+            <div class="order-card-body">
+                <span class="muted" th:text="${'共 ' + o.totalQuantity() + ' 件商品'}">共 1 件商品</span>
+                <span class="price" th:text="${'¥' + #numbers.formatDecimal(o.totalAmount(), 1, 2)}">¥0.00</span>
+                <a class="button button-small" th:href="@{/orders/{id}(id=${o.id()})}">
+                    <i class="bi bi-eye" aria-hidden="true"></i> 查看详情
+                </a>
+            </div>
+        </article>
+    </div>
+
+    <div class="empty-state" th:if="${#lists.isEmpty(orders)}">
+        <i class="bi bi-receipt-cutoff empty-icon" aria-hidden="true"></i>
+        <p>还没有订单</p>
+        <p class="muted">去首页挑选商品，下单后可在这里查看。</p>
+        <a class="button" th:href="@{/}"><i class="bi bi-shop" aria-hidden="true"></i> 去逛逛</a>
+    </div>
+</main>
+</body>
+</html>

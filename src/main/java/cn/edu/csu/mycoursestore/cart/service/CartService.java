@@ -48,7 +48,7 @@ public class CartService {
                 .orderByAsc(CartItem::getCreatedAt)
                 .orderByAsc(CartItem::getId));
         if (items.isEmpty()) {
-            return new CartView(List.of(), BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP), 0, 0);
+            return new CartView(List.of(), BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP), 0, 0, false);
         }
 
         List<Long> productIds = items.stream().map(CartItem::getProductId).toList();
@@ -84,7 +84,9 @@ public class CartService {
                     onSale,
                     onSale && stock >= quantity));
         }
-        return new CartView(lines, totalAmount.setScale(2, RoundingMode.HALF_UP), totalQuantity, lines.size());
+        boolean checkoutReady = lines.stream().allMatch(line -> line.onSale() && line.stockEnough());
+        return new CartView(lines, totalAmount.setScale(2, RoundingMode.HALF_UP), totalQuantity,
+                lines.size(), checkoutReady);
     }
 
     public int cartQuantity(long userId) {
