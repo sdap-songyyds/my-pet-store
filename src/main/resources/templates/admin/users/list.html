@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('用户管理')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav}"></header>
+
+<main class="container admin-main">
+    <div class="alert alert-success" th:if="${success}" th:text="${success}"></div>
+    <div class="alert alert-error" th:if="${error}" th:text="${error}"></div>
+
+    <div class="admin-head">
+        <div>
+            <p class="admin-kicker">后台管理</p>
+            <h1>用户管理</h1>
+            <p class="muted">查询用户、删除用户或重置密码；不提供启用/禁用操作。</p>
+        </div>
+    </div>
+
+    <nav th:replace="~{admin/fragments/tabs :: tabs('users')}"></nav>
+
+    <section class="card admin-list-card">
+        <form class="admin-filters" method="get" th:action="@{/admin/users}">
+            <label class="field">
+                <span>关键字</span>
+                <input type="text" name="keyword" maxlength="100"
+                       placeholder="用户名、显示名、邮箱或手机号"
+                       th:value="${filter.keyword() ?: ''}">
+            </label>
+
+            <label class="field">
+                <span>角色</span>
+                <select name="role">
+                    <option value="">全部角色</option>
+                    <option value="CUSTOMER"
+                            th:selected="${filter.role() != null and filter.role().name() == 'CUSTOMER'}">顾客</option>
+                    <option value="ADMIN"
+                            th:selected="${filter.role() != null and filter.role().name() == 'ADMIN'}">管理员</option>
+                </select>
+            </label>
+
+            <label class="field">
+                <span>状态</span>
+                <select name="status">
+                    <option value="">全部状态</option>
+                    <option value="ENABLED"
+                            th:selected="${filter.status() != null and filter.status().name() == 'ENABLED'}">启用</option>
+                    <option value="DISABLED"
+                            th:selected="${filter.status() != null and filter.status().name() == 'DISABLED'}">禁用</option>
+                </select>
+            </label>
+
+            <div class="admin-filter-actions">
+                <button type="submit" class="button">
+                    <i class="bi bi-search" aria-hidden="true"></i> 筛选
+                </button>
+                <a class="button button-ghost" th:href="@{/admin/users}">重置</a>
+            </div>
+        </form>
+
+        <div class="table-wrap" th:if="${!#lists.isEmpty(result.items())}">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>用户</th>
+                    <th>角色</th>
+                    <th>状态</th>
+                    <th>联系方式</th>
+                    <th>订单</th>
+                    <th>购物车</th>
+                    <th>注册时间</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="u : ${result.items()}">
+                    <td>
+                        <div class="admin-user-cell">
+                            <span class="admin-user-avatar"
+                                  th:text="${#strings.substring(u.displayName(), 0, 1)}">A</span>
+                            <div>
+                                <span class="admin-user-name" th:text="${u.displayName()}">显示名称</span>
+                                <span class="admin-user-meta" th:text="${'@' + u.username()}">@username</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge" th:text="${u.roleLabel()}">顾客</span>
+                    </td>
+                    <td>
+                        <div class="admin-status-cell">
+                            <span class="status-badge"
+                                  th:classappend="${' status-' + u.status().name()}"
+                                  th:text="${u.statusLabel()}">启用</span>
+
+                            <form class="inline-form" method="post"
+                                  th:if="${u.role().name() != 'ADMIN' and u.id() != currentUser.id and u.status().name() == 'ENABLED'}"
+                                  th:action="@{/admin/users/{id}/status(id=${u.id()})}"
+                                  onsubmit="return confirm('确定禁用该用户吗？禁用后该用户将无法登录。');">
+                                <input type="hidden" name="status" value="DISABLED">
+                                <input type="hidden" name="expectedStatus" th:value="${u.status().name()}">
+                                <input type="hidden" name="keyword" th:value="${filter.keyword() ?: ''}">
+                                <input type="hidden" name="role" th:value="${filter.role() != null ? filter.role().name() : ''}">
+                                <input type="hidden" name="filterStatus" th:value="${filter.status() != null ? filter.status().name() : ''}">
+                                <input type="hidden" name="page" th:value="${result.page()}">
+                                <input type="hidden" name="size" th:value="${result.size()}">
+                                <button type="submit" class="button button-small button-danger">禁用</button>
+                            </form>
+
+                            <form class="inline-form" method="post"
+                                  th:if="${u.role().name() != 'ADMIN' and u.id() != currentUser.id and u.status().name() == 'DISABLED'}"
+                                  th:action="@{/admin/users/{id}/status(id=${u.id()})}">
+                                <input type="hidden" name="status" value="ENABLED">
+                                <input type="hidden" name="expectedStatus" th:value="${u.status().name()}">
+                                <input type="hidden" name="keyword" th:value="${filter.keyword() ?: ''}">
+                                <input type="hidden" name="role" th:value="${filter.role() != null ? filter.role().name() : ''}">
+                                <input type="hidden" name="filterStatus" th:value="${filter.status() != null ? filter.status().name() : ''}">
+                                <input type="hidden" name="page" th:value="${result.page()}">
+                                <input type="hidden" name="size" th:value="${result.size()}">
+                                <button type="submit" class="button button-small">启用</button>
+                            </form>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="admin-contact">
+                            <span th:text="${u.email() ?: '—'}">—</span>
+                            <span class="muted" th:text="${u.phone() ?: '—'}">—</span>
+                        </div>
+                    </td>
+                    <td th:text="${u.orderCount()}">0</td>
+                    <td>
+                        <span th:text="${u.cartItemCount() + ' 种'}">0 种</span>
+                    </td>
+                    <td class="muted" th:text="${u.createdAtText()}">-</td>
+                    <td>
+                        <div class="admin-product-actions">
+                            <a class="button button-small button-ghost"
+                               th:href="@{/admin/users/{id}/password(id=${u.id()}, keyword=${filter.keyword()}, role=${filter.role()}, status=${filter.status()}, page=${result.page()}, size=${result.size()})}">
+                                <i class="bi bi-key" aria-hidden="true"></i> 重置密码
+                            </a>
+                            <form method="post" class="inline-form" th:if="${u.deleteBlockedReason() == null}"
+                                  th:action="@{/admin/users/{id}/delete(id=${u.id()})}"
+                                  onsubmit="return confirm('确定删除该用户吗？该操作不可恢复。');">
+                                <input type="hidden" name="keyword" th:value="${filter.keyword() ?: ''}">
+                                <input type="hidden" name="role" th:value="${filter.role() != null ? filter.role().name() : ''}">
+                                <input type="hidden" name="status" th:value="${filter.status() != null ? filter.status().name() : ''}">
+                                <input type="hidden" name="page" th:value="${result.page()}">
+                                <input type="hidden" name="size" th:value="${result.size()}">
+                                <button type="submit" class="button button-small button-danger">
+                                    <i class="bi bi-trash3" aria-hidden="true"></i> 删除
+                                </button>
+                            </form>
+                            <span class="admin-delete-blocked" th:if="${u.deleteBlockedReason() != null}">
+                                <i class="bi bi-lock" aria-hidden="true"></i>
+                                <span th:text="${'不可删：' + u.deleteBlockedReason()}">不可删</span>
+                            </span>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="empty-state" th:if="${#lists.isEmpty(result.items())}">
+            <i class="bi bi-people empty-icon" aria-hidden="true"></i>
+            <p>没有符合条件的用户</p>
+            <p class="muted">可以调整筛选条件后再试。</p>
+        </div>
+
+        <div class="admin-pagination" th:if="${result.total() > 0}">
+            <span class="muted"
+                  th:text="${'共 ' + result.total() + ' 条，第 ' + result.page() + ' / ' + result.totalPages() + ' 页'}">
+                共 0 条
+            </span>
+            <div class="admin-pagination-actions">
+                <a class="button button-small button-ghost" th:if="${result.hasPrevious()}"
+                   th:href="@{/admin/users(page=${result.page() - 1}, size=${result.size()}, keyword=${filter.keyword()}, role=${filter.role()}, status=${filter.status()})}">
+                    <i class="bi bi-chevron-left" aria-hidden="true"></i> 上一页
+                </a>
+                <span class="button button-small button-ghost is-disabled" th:unless="${result.hasPrevious()}">
+                    <i class="bi bi-chevron-left" aria-hidden="true"></i> 上一页
+                </span>
+                <a class="button button-small button-ghost" th:if="${result.hasNext()}"
+                   th:href="@{/admin/users(page=${result.page() + 1}, size=${result.size()}, keyword=${filter.keyword()}, role=${filter.role()}, status=${filter.status()})}">
+                    下一页 <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                </a>
+                <span class="button button-small button-ghost is-disabled" th:unless="${result.hasNext()}">
+                    下一页 <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                </span>
+            </div>
+        </div>
+    </section>
+</main>
+</body>
+</html>

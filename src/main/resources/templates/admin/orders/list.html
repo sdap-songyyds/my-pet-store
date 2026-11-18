@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('订单管理')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav}"></header>
+
+<main class="container admin-main">
+    <div class="alert alert-success" th:if="${success}" th:text="${success}"></div>
+    <div class="alert alert-error" th:if="${error}" th:text="${error}"></div>
+
+    <div class="admin-head">
+        <div>
+            <p class="admin-kicker">后台管理</p>
+            <h1>订单管理</h1>
+            <p class="muted">按订单号、收货信息、用户、状态和下单日期查询订单。</p>
+        </div>
+    </div>
+
+    <nav th:replace="~{admin/fragments/tabs :: tabs('orders')}"></nav>
+
+    <section class="card admin-list-card">
+        <form class="admin-filters" method="get" th:action="@{/admin/orders}">
+            <label class="field">
+                <span>关键字</span>
+                <input type="text" name="keyword" maxlength="120"
+                       placeholder="订单号、收货人、电话或用户"
+                       th:value="${filter.keyword() ?: ''}">
+            </label>
+
+            <label class="field">
+                <span>状态</span>
+                <select name="status">
+                    <option value="">全部状态</option>
+                    <option value="PENDING_PAYMENT"
+                            th:selected="${filter.status() != null and filter.status().name() == 'PENDING_PAYMENT'}">待支付</option>
+                    <option value="PAID"
+                            th:selected="${filter.status() != null and filter.status().name() == 'PAID'}">已支付</option>
+                    <option value="SHIPPED"
+                            th:selected="${filter.status() != null and filter.status().name() == 'SHIPPED'}">已发货</option>
+                    <option value="COMPLETED"
+                            th:selected="${filter.status() != null and filter.status().name() == 'COMPLETED'}">已完成</option>
+                    <option value="CANCELLED"
+                            th:selected="${filter.status() != null and filter.status().name() == 'CANCELLED'}">已取消</option>
+                </select>
+            </label>
+
+            <label class="field">
+                <span>下单开始</span>
+                <input type="date" name="from" th:value="${filter.from()}">
+            </label>
+
+            <label class="field">
+                <span>下单结束</span>
+                <input type="date" name="to" th:value="${filter.to()}">
+            </label>
+
+            <div class="admin-filter-actions">
+                <button type="submit" class="button">
+                    <i class="bi bi-search" aria-hidden="true"></i> 筛选
+                </button>
+                <a class="button button-ghost" th:href="@{/admin/orders}">重置</a>
+            </div>
+        </form>
+
+        <div class="table-wrap" th:if="${!#lists.isEmpty(result.items())}">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>订单号</th>
+                    <th>用户</th>
+                    <th>状态</th>
+                    <th>商品</th>
+                    <th>金额</th>
+                    <th>下单时间</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="o : ${result.items()}">
+                    <td class="order-no" th:text="${o.orderNo()}">ORD000000</td>
+                    <td>
+                        <span class="admin-user-name" th:text="${o.displayName()}">用户</span>
+                        <span class="admin-user-meta" th:text="${'@' + o.username()}">@username</span>
+                    </td>
+                    <td>
+                        <span class="status-badge"
+                              th:classappend="${' status-' + o.status().name()}"
+                              th:text="${o.statusLabel()}">待支付</span>
+                    </td>
+                    <td th:text="${o.totalQuantity() + ' 件'}">1 件</td>
+                    <td class="amount" th:text="${'¥' + #numbers.formatDecimal(o.totalAmount(), 1, 2)}">¥0.00</td>
+                    <td class="muted" th:text="${o.createdAtText()}">2026-01-01 00:00</td>
+                    <td>
+                        <a class="button button-small button-ghost"
+                           th:href="@{/admin/orders/{id}(id=${o.id()}, keyword=${filter.keyword()}, status=${filter.status()}, from=${filter.from()}, to=${filter.to()}, page=${result.page()}, size=${result.size()})}">
+                            <i class="bi bi-eye" aria-hidden="true"></i> 查看
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="empty-state" th:if="${#lists.isEmpty(result.items())}">
+            <i class="bi bi-receipt-cutoff empty-icon" aria-hidden="true"></i>
+            <p>没有符合条件的订单</p>
+            <p class="muted">可以调整筛选条件后再试。</p>
+        </div>
+
+        <div class="admin-pagination" th:if="${result.total() > 0}">
+            <span class="muted"
+                  th:text="${'共 ' + result.total() + ' 条，第 ' + result.page() + ' / ' + result.totalPages() + ' 页'}">
+                共 0 条
+            </span>
+            <div class="admin-pagination-actions">
+                <a class="button button-small button-ghost" th:if="${result.hasPrevious()}"
+                   th:href="@{/admin/orders(page=${result.page() - 1}, size=${result.size()}, keyword=${filter.keyword()}, status=${filter.status()}, from=${filter.from()}, to=${filter.to()})}">
+                    <i class="bi bi-chevron-left" aria-hidden="true"></i> 上一页
+                </a>
+                <span class="button button-small button-ghost is-disabled" th:unless="${result.hasPrevious()}">
+                    <i class="bi bi-chevron-left" aria-hidden="true"></i> 上一页
+                </span>
+                <a class="button button-small button-ghost" th:if="${result.hasNext()}"
+                   th:href="@{/admin/orders(page=${result.page() + 1}, size=${result.size()}, keyword=${filter.keyword()}, status=${filter.status()}, from=${filter.from()}, to=${filter.to()})}">
+                    下一页 <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                </a>
+                <span class="button button-small button-ghost is-disabled" th:unless="${result.hasNext()}">
+                    下一页 <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                </span>
+            </div>
+        </div>
+    </section>
+</main>
+</body>
+</html>
