@@ -1550,6 +1550,50 @@ textarea:focus {
     gap: 4px;
 }
 
+.admin-category-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-category-name .bi {
+    color: var(--primary);
+}
+
+.admin-category-child-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding-left: 24px;
+    color: #374151;
+}
+
+.admin-category-child-name .bi {
+    color: var(--muted);
+}
+
+.admin-category-parent-row td {
+    background: #fafbff;
+}
+
+.admin-category-table code {
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: #f3f4f6;
+    color: #4b5563;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 12px;
+}
+
+.admin-delete-blocked {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--muted);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
 @media (max-width: 860px) {
     .admin-detail-grid,
     .admin-gallery-row {

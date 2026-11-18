@@ -28,11 +28,7 @@
         </div>
     </div>
 
-    <nav class="admin-tabs" aria-label="后台功能">
-        <a class="admin-tab is-active" th:href="@{/admin/products}">
-            <i class="bi bi-box-seam" aria-hidden="true"></i> 商品
-        </a>
-    </nav>
+    <nav th:replace="~{admin/fragments/tabs :: tabs('products')}"></nav>
 
     <section class="card">
         <div class="admin-detail-grid">

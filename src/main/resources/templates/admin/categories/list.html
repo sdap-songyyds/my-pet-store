@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('分类管理')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav}"></header>
+
+<main class="container admin-main">
+    <div class="alert alert-success" th:if="${success}" th:text="${success}"></div>
+    <div class="alert alert-error" th:if="${error}" th:text="${error}"></div>
+
+    <div class="admin-head">
+        <div>
+            <p class="admin-kicker">后台管理</p>
+            <h1>分类管理</h1>
+            <p class="muted">固定两级分类；编码与上级分类创建后不可修改。</p>
+        </div>
+        <a class="button" th:href="@{/admin/categories/new}">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i> 新增一级分类
+        </a>
+    </div>
+
+    <nav th:replace="~{admin/fragments/tabs :: tabs('categories')}"></nav>
+
+    <section class="card admin-list-card">
+        <div class="table-wrap" th:if="${!#lists.isEmpty(groups)}">
+            <table class="data-table admin-category-table">
+                <thead>
+                <tr>
+                    <th>分类</th>
+                    <th>编码</th>
+                    <th>排序</th>
+                    <th>商品数</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                <th:block th:each="group : ${groups}">
+                    <tr class="admin-category-parent-row">
+                        <td>
+                            <span class="admin-category-name">
+                                <i class="bi bi-folder2-open" aria-hidden="true"></i>
+                                <strong th:text="${group.parent().name()}">一级分类</strong>
+                                <span class="chip"
+                                      th:text="${#lists.size(group.children()) + ' 个二级分类'}">0 个二级分类</span>
+                            </span>
+                        </td>
+                        <td><code th:text="${group.parent().code()}">code</code></td>
+                        <td th:text="${group.parent().sortOrder()}">0</td>
+                        <td th:text="${group.parent().productCount()}">0</td>
+                        <td>
+                            <div class="admin-product-actions">
+                                <a class="button button-small button-ghost"
+                                   th:href="@{/admin/categories/new(parentId=${group.parent().id()})}">
+                                    <i class="bi bi-plus-lg" aria-hidden="true"></i> 新增二级
+                                </a>
+                                <a class="button button-small button-ghost"
+                                   th:href="@{/admin/categories/{id}/edit(id=${group.parent().id()})}">编辑</a>
+                                <form method="post" class="inline-form" th:if="${group.parent().deleteBlockedReason() == null}"
+                                      th:action="@{/admin/categories/{id}/delete(id=${group.parent().id()})}"
+                                      onsubmit="return confirm('确定删除该分类吗？');">
+                                    <button type="submit" class="button button-small button-danger">删除</button>
+                                </form>
+                                <span class="admin-delete-blocked" th:if="${group.parent().deleteBlockedReason() != null}">
+                                    <i class="bi bi-lock" aria-hidden="true"></i>
+                                    <span th:text="${'不可删：' + group.parent().deleteBlockedReason()}">不可删</span>
+                                </span>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr class="admin-category-child-row" th:each="child : ${group.children()}">
+                        <td>
+                            <span class="admin-category-child-name">
+                                <i class="bi bi-corner-down-right" aria-hidden="true"></i>
+                                <span th:text="${child.name()}">二级分类</span>
+                            </span>
+                        </td>
+                        <td><code th:text="${child.code()}">code</code></td>
+                        <td th:text="${child.sortOrder()}">0</td>
+                        <td th:text="${child.productCount()}">0</td>
+                        <td>
+                            <div class="admin-product-actions">
+                                <a class="button button-small button-ghost"
+                                   th:href="@{/admin/categories/{id}/edit(id=${child.id()})}">编辑</a>
+                                <form method="post" class="inline-form" th:if="${child.deleteBlockedReason() == null}"
+                                      th:action="@{/admin/categories/{id}/delete(id=${child.id()})}"
+                                      onsubmit="return confirm('确定删除该分类吗？');">
+                                    <button type="submit" class="button button-small button-danger">删除</button>
+                                </form>
+                                <span class="admin-delete-blocked" th:if="${child.deleteBlockedReason() != null}">
+                                    <i class="bi bi-lock" aria-hidden="true"></i>
+                                    <span th:text="${'不可删：' + child.deleteBlockedReason()}">不可删</span>
+                                </span>
+                            </div>
+                        </td>
+                    </tr>
+                </th:block>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="empty-state" th:if="${#lists.isEmpty(groups)}">
+            <i class="bi bi-diagram-3 empty-icon" aria-hidden="true"></i>
+            <p>还没有分类</p>
+            <p class="muted">先创建一级分类，再在它下面创建二级分类。</p>
+            <a class="button button-small" th:href="@{/admin/categories/new}">新增一级分类</a>
+        </div>
+    </section>
+</main>
+</body>
+</html>

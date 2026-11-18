@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${editing ? '编辑分类' : '新增分类'})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav}"></header>
+
+<main class="container admin-main">
+    <div class="alert alert-error" th:if="${error}" th:text="${error}"></div>
+
+    <div class="admin-head">
+        <div>
+            <p class="admin-kicker">后台管理</p>
+            <h1 th:text="${editing ? '编辑分类' : (parent == null ? '新增一级分类' : '新增二级分类')}">
+                新增分类
+            </h1>
+            <p class="muted">分类编码与上级分类创建后不可修改。</p>
+        </div>
+        <a class="button button-ghost" th:href="@{/admin/categories}">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i> 返回列表
+        </a>
+    </div>
+
+    <nav th:replace="~{admin/fragments/tabs :: tabs('categories')}"></nav>
+
+    <section class="card">
+        <div class="alert alert-error"
+             th:if="${categoryGlobalErrors != null and !#lists.isEmpty(categoryGlobalErrors)}"
+             th:text="${#strings.listJoin(categoryGlobalErrors, '；')}"></div>
+
+        <form th:action="@{${formAction}}" method="post" class="form">
+            <input type="hidden" name="parentId" th:if="${!editing and parent != null}"
+                   th:value="${parent.id()}">
+
+            <div class="field-row">
+                <label class="field" th:if="${!editing}">
+                    <span>分类编码</span>
+                    <input type="text" name="code" required maxlength="32" autofocus
+                           th:value="${form.code()}">
+                    <small class="hint">全局唯一，创建后不可修改</small>
+                    <small class="field-error"
+                           th:if="${categoryFieldErrors != null and categoryFieldErrors['code'] != null}"
+                           th:text="${#strings.listJoin(categoryFieldErrors['code'], '；')}"></small>
+                </label>
+
+                <div class="field" th:if="${editing}">
+                    <span>分类编码</span>
+                    <p class="admin-readonly" th:text="${category.code()}">code</p>
+                    <small class="hint">创建后不可修改</small>
+                </div>
+
+                <div class="field">
+                    <span>上级分类</span>
+                    <p class="admin-readonly"
+                       th:text="${editing ? (category.parentName() ?: '无（一级分类）') : (parent == null ? '无（一级分类）' : parent.name())}">
+                        无（一级分类）
+                    </p>
+                    <small class="hint">创建后不可修改</small>
+                </div>
+            </div>
+
+            <label class="field">
+                <span>分类名称</span>
+                <input type="text" name="name" required maxlength="50"
+                       th:value="${form.name()}">
+                <small class="hint">同一层级下名称不能重复</small>
+                <small class="field-error"
+                       th:if="${categoryFieldErrors != null and categoryFieldErrors['name'] != null}"
+                       th:text="${#strings.listJoin(categoryFieldErrors['name'], '；')}"></small>
+            </label>
+
+            <label class="field">
+                <span>排序</span>
+                <input type="number" name="sortOrder" min="0" step="1" required
+                       th:value="${form.sortOrder()}">
+                <small class="hint">数值越小越靠前</small>
+                <small class="field-error"
+                       th:if="${categoryFieldErrors != null and categoryFieldErrors['sortOrder'] != null}"
+                       th:text="${#strings.listJoin(categoryFieldErrors['sortOrder'], '；')}"></small>
+            </label>
+
+            <div class="admin-form-actions">
+                <button type="submit" class="button"
+                        th:text="${editing ? '保存修改' : '创建分类'}">创建分类</button>
+                <a class="button button-ghost" th:href="@{/admin/categories}">取消</a>
+            </div>
+        </form>
+    </section>
+</main>
+</body>
+</html>

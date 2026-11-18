@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<body>
+<nav th:fragment="tabs(active)" class="admin-tabs" aria-label="后台功能">
+    <a class="admin-tab" th:classappend="${active == 'products' ? 'is-active' : ''}"
+       th:href="@{/admin/products}">
+        <i class="bi bi-box-seam" aria-hidden="true"></i> 商品
+    </a>
+    <a class="admin-tab" th:classappend="${active == 'categories' ? 'is-active' : ''}"
+       th:href="@{/admin/categories}">
+        <i class="bi bi-diagram-3" aria-hidden="true"></i> 分类
+    </a>
+</nav>
+</body>
+</html>
