@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('商品详情')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav}"></header>
+
+<main class="container admin-main">
+    <div class="alert alert-success" th:if="${success}" th:text="${success}"></div>
+    <div class="alert alert-error" th:if="${error}" th:text="${error}"></div>
+
+    <div class="admin-head">
+        <div>
+            <p class="admin-kicker">后台管理</p>
+            <h1 th:text="${product.name()}">商品名称</h1>
+            <p class="muted">
+                <span th:text="${product.sku()}">SKU</span>
+                <span> · </span>
+                <span th:text="${product.categoryPath()}">分类</span>
+            </p>
+        </div>
+        <div class="admin-product-actions">
+            <a class="button button-ghost" th:href="@{/admin/products}">
+                <i class="bi bi-arrow-left" aria-hidden="true"></i> 返回列表
+            </a>
+            <a class="button" th:href="@{/admin/products/{id}/edit(id=${product.id()})}">
+                <i class="bi bi-pencil" aria-hidden="true"></i> 编辑
+            </a>
+        </div>
+    </div>
+
+    <nav class="admin-tabs" aria-label="后台功能">
+        <a class="admin-tab is-active" th:href="@{/admin/products}">
+            <i class="bi bi-box-seam" aria-hidden="true"></i> 商品
+        </a>
+    </nav>
+
+    <section class="card">
+        <div class="admin-detail-grid">
+            <img class="admin-cover" th:src="${'/' + product.coverImage()}" th:alt="${product.name()}"
+                 onerror="this.src='/images/placeholder.svg'">
+
+            <div>
+                <dl class="info-list">
+                    <div>
+                        <dt>状态</dt>
+                        <dd>
+                            <span class="status-badge"
+                                  th:classappend="${' status-' + product.status().name()}"
+                                  th:text="${product.statusLabel()}">草稿</span>
+                        </dd>
+                    </div>
+                    <div>
+                        <dt>价格</dt>
+                        <dd th:text="${'¥' + #numbers.formatDecimal(product.price(), 1, 2)}">¥0.00</dd>
+                    </div>
+                    <div>
+                        <dt>库存</dt>
+                        <dd th:text="${product.stock()}">0</dd>
+                    </div>
+                    <div>
+                        <dt>排序</dt>
+                        <dd th:text="${product.sortOrder()}">0</dd>
+                    </div>
+                    <div>
+                        <dt>版本</dt>
+                        <dd th:text="${product.version()}">0</dd>
+                    </div>
+                    <div>
+                        <dt>创建时间</dt>
+                        <dd th:text="${product.createdAtText()}">-</dd>
+                    </div>
+                    <div>
+                        <dt>更新时间</dt>
+                        <dd th:text="${product.updatedAtText()}">-</dd>
+                    </div>
+                </dl>
+
+                <form th:action="@{/admin/products/{id}/status(id=${product.id()})}" method="post"
+                      class="inline-form" th:if="${product.status() != null}">
+                    <input type="hidden" name="version" th:value="${product.version()}">
+                    <input type="hidden" name="status"
+                           th:value="${product.status().name() == 'DRAFT' ? 'ON_SALE' : 'DRAFT'}">
+                    <button type="submit" class="button"
+                            th:text="${product.status().name() == 'DRAFT' ? '上架销售' : '下架'}">上架销售</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>商品简介</h2>
+        <p class="admin-description" th:text="${product.summary() ?: '暂无简介'}">暂无简介</p>
+
+        <h2 class="admin-section-gap">商品详情</h2>
+        <p class="admin-description" th:text="${product.description() ?: '暂无详情'}">暂无详情</p>
+    </section>
+
+    <section class="card">
+        <h2>相册</h2>
+        <p class="muted">本期只维护站内图片路径，不做文件上传；多个商品可复用同一张图片。</p>
+
+        <div class="admin-gallery" th:if="${!#lists.isEmpty(product.images())}">
+            <div class="admin-gallery-row" th:each="image : ${product.images()}">
+                <img th:src="${'/' + image.imagePath()}" th:alt="${image.altText() ?: product.name()}"
+                     onerror="this.src='/images/placeholder.svg'">
+
+                <form class="admin-gallery-edit"
+                      th:action="@{/admin/products/{id}/images/{imageId}(id=${product.id()}, imageId=${image.id()})}"
+                      method="post">
+                    <label class="field">
+                        <span>图片路径</span>
+                        <input type="text" name="imagePath" required maxlength="255"
+                               th:value="${image.imagePath()}">
+                    </label>
+                    <label class="field">
+                        <span>替代文本</span>
+                        <input type="text" name="altText" maxlength="120"
+                               th:value="${image.altText() ?: ''}">
+                    </label>
+                    <label class="field">
+                        <span>排序</span>
+                        <input type="number" name="sortOrder" min="0" step="1" required
+                               th:value="${image.sortOrder()}">
+                    </label>
+                    <button type="submit" class="button button-small">保存</button>
+                </form>
+
+                <form th:action="@{/admin/products/{id}/images/{imageId}/delete(id=${product.id()}, imageId=${image.id()})}"
+                      method="post" class="inline-form">
+                    <button type="submit" class="button button-small button-danger">
+                        <i class="bi bi-trash3" aria-hidden="true"></i> 删除
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <p class="muted" th:if="${#lists.isEmpty(product.images())}">暂无相册图片。</p>
+
+        <form class="admin-gallery-add"
+              th:action="@{/admin/products/{id}/images(id=${product.id()})}" method="post">
+            <label class="field">
+                <span>图片路径</span>
+                <input type="text" name="imagePath" required maxlength="255"
+                       placeholder="images/placeholder.svg">
+            </label>
+            <label class="field">
+                <span>替代文本</span>
+                <input type="text" name="altText" maxlength="120" placeholder="选填">
+            </label>
+            <label class="field">
+                <span>排序</span>
+                <input type="number" name="sortOrder" min="0" step="1" value="0" required>
+            </label>
+            <button type="submit" class="button">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i> 添加图片
+            </button>
+        </form>
+    </section>
+</main>
+</body>
+</html>
