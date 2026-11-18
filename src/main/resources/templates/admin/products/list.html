@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('商品管理')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav}"></header>
+
+<main class="container admin-main">
+    <div class="admin-head">
+        <div>
+            <p class="admin-kicker">后台管理</p>
+            <h1>商品管理</h1>
+            <p class="muted">维护商品信息、上下架状态与库存。</p>
+        </div>
+    </div>
+
+    <nav class="admin-tabs" aria-label="后台功能">
+        <a class="admin-tab is-active" th:href="@{/admin/products}">
+            <i class="bi bi-box-seam" aria-hidden="true"></i> 商品
+        </a>
+    </nav>
+
+    <section class="card">
+        <div class="empty-state">
+            <i class="bi bi-cone-striped empty-icon" aria-hidden="true"></i>
+            <p>商品管理将在下一段实现</p>
+            <p class="muted">当前已完成管理员登录、角色守卫与后台入口。</p>
+        </div>
+    </section>
+</main>
+</body>
+</html>

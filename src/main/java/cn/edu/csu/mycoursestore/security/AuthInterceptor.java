@@ -2,6 +2,7 @@ package cn.edu.csu.mycoursestore.security;
 
 import cn.edu.csu.mycoursestore.common.ApiException;
 import cn.edu.csu.mycoursestore.user.entity.StoreUser;
+import cn.edu.csu.mycoursestore.user.entity.UserRole;
 import cn.edu.csu.mycoursestore.user.entity.UserStatus;
 import cn.edu.csu.mycoursestore.user.mapper.StoreUserMapper;
 import jakarta.servlet.http.Cookie;
@@ -38,12 +39,19 @@ public class AuthInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException {
         boolean authenticated = authenticate(request);
-        if (!authenticated && requiresAuth(handler)) {
+        boolean adminRequired = requiresAdmin(handler);
+        if (!authenticated && (adminRequired || requiresAuth(handler))) {
             if (isJsonHandler(handler)) {
                 throw new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "请先登录");
             }
             redirectToLogin(request, response);
             return false;
+        }
+        if (adminRequired) {
+            StoreUser user = (StoreUser) request.getAttribute(CURRENT_USER_ATTRIBUTE);
+            if (user == null || user.getRole() != UserRole.ADMIN) {
+                throw new ApiException(HttpStatus.FORBIDDEN, "FORBIDDEN", "无权访问后台");
+            }
         }
         return true;
     }
@@ -113,5 +121,13 @@ public class AuthInterceptor implements HandlerInterceptor {
         }
         return handlerMethod.hasMethodAnnotation(RequireAuth.class)
                 || handlerMethod.getBeanType().isAnnotationPresent(RequireAuth.class);
+    }
+
+    private boolean requiresAdmin(Object handler) {
+        if (!(handler instanceof HandlerMethod handlerMethod)) {
+            return false;
+        }
+        return handlerMethod.hasMethodAnnotation(RequireAdmin.class)
+                || handlerMethod.getBeanType().isAnnotationPresent(RequireAdmin.class);
     }
 }

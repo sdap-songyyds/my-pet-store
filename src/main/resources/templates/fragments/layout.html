@@ -25,6 +25,9 @@
                     <span th:text="${currentUser.getDisplayName()}">用户</span>
                 </span>
                 <a th:href="@{/account}"><i class="bi bi-person-gear" aria-hidden="true"></i> 用户中心</a>
+                <a th:if="${currentUser.role.name() == 'ADMIN'}" th:href="@{/admin}">
+                    <i class="bi bi-speedometer2" aria-hidden="true"></i> 后台管理
+                </a>
                 <form th:action="@{/logout}" method="post" class="inline-form">
                     <button type="submit" class="link-button">
                         <i class="bi bi-box-arrow-right" aria-hidden="true"></i> 退出

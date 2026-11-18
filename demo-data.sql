@@ -2,7 +2,7 @@
 --
 -- 用途：为本地商城前台提供示例分类、商品与相册数据，可按需修改后重复执行。
 -- 用法：在任意 PostgreSQL 客户端中执行本文件，例如
---       psql -h localhost -U postgres -d mycoursestore -f demo-data.sql
+--       psql -h localhost -U mypetstore_app -d mypetstore -f demo-data.sql
 --
 -- 特点：
 --   * 不写死自增 id，全部通过 code / sku 关联，队友本地可直接运行。
@@ -91,5 +91,22 @@ WHERE p.sku IN ('DEMO-001', 'DEMO-002', 'DEMO-003', 'DEMO-004')
       SELECT 1 FROM product_image pi
       WHERE pi.product_id = p.id AND pi.image_path = 'images/placeholder.svg'
   );
+
+COMMIT;
+
+-- ===== 管理员账号 =====
+-- 用户名：admin
+-- 初始密码：Admin@123456
+-- password_hash 由 Spring Security BCryptPasswordEncoder 生成；
+-- 重复执行不会覆盖已存在的 admin，也不会把同名普通账号提升为管理员。
+BEGIN;
+
+INSERT INTO store_user (username, password_hash, display_name, role, status)
+SELECT 'admin',
+       '$2a$10$aPZI5WVwYcciEjby5kBtuuZlBqnWkr3ITnL.sAblVWiAoZm2v9MV2',
+       '管理员',
+       'ADMIN',
+       'ENABLED'
+WHERE NOT EXISTS (SELECT 1 FROM store_user WHERE username = 'admin');
 
 COMMIT;
