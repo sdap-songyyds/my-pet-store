@@ -4,6 +4,25 @@
 <body>
 <header th:replace="~{fragments/layout :: nav}"></header>
 
+<div class="toast" th:if="${cartSuccess}" role="status" data-auto-dismiss="4000">
+    <i class="bi bi-check-circle-fill toast-icon" aria-hidden="true"></i>
+    <span>已加入购物车</span>
+    <a th:href="@{/cart}">去购物车看看</a>
+    <button type="button" class="toast-close" aria-label="关闭"
+            onclick="this.closest('.toast').remove()">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+    </button>
+</div>
+
+<div class="toast toast-error" th:if="${cartError}" role="alert" data-auto-dismiss="5000">
+    <i class="bi bi-exclamation-circle-fill toast-icon" aria-hidden="true"></i>
+    <span th:text="${cartError}">操作失败</span>
+    <button type="button" class="toast-close" aria-label="关闭"
+            onclick="this.closest('.toast').remove()">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+    </button>
+</div>
+
 <main class="container detail-main">
     <nav class="breadcrumb">
         <a th:href="@{/}"><i class="bi bi-house-door" aria-hidden="true"></i> 首页</a>
@@ -44,10 +63,26 @@
                 </div>
             </dl>
 
-            <button type="button" class="button button-block" disabled>
-                <i class="bi bi-cart-plus" aria-hidden="true"></i> 加入购物车（开发中）
-            </button>
-            <p class="muted detail-note">购物车与下单功能将在后续模块接入。</p>
+            <form th:if="${currentUser != null}" th:action="@{/cart/items}" method="post" class="buy-form">
+                <input type="hidden" name="productId" th:value="${product.id()}">
+                <label class="qty-field">
+                    <span>数量</span>
+                    <input type="number" name="quantity" min="1" value="1"
+                           th:max="${product.stock() > 99 ? 99 : product.stock()}"
+                           th:disabled="${product.stock() == 0}">
+                </label>
+                <button type="submit" class="button button-block" th:disabled="${product.stock() == 0}">
+                    <i class="bi bi-cart-plus" aria-hidden="true"></i>
+                    <span th:text="${product.stock() > 0 ? '加入购物车' : '暂时缺货'}">加入购物车</span>
+                </button>
+            </form>
+
+            <a th:if="${currentUser == null}" class="button button-block"
+               th:href="@{/login(redirect=${'/products/' + product.id()})}">
+                <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> 登录后购买
+            </a>
+
+            <p class="muted detail-note">购物车不占用库存，结算功能将在订单模块接入。</p>
         </div>
     </section>
 
@@ -56,5 +91,17 @@
         <p class="description" th:text="${product.description() ?: '暂无详细描述'}">暂无详细描述</p>
     </section>
 </main>
+
+<script>
+    document.querySelectorAll('[data-auto-dismiss]').forEach(function (toast) {
+        var delay = Number(toast.dataset.autoDismiss) || 4000;
+        setTimeout(function () {
+            toast.classList.add('toast-hide');
+            setTimeout(function () {
+                toast.remove();
+            }, 300);
+        }, delay);
+    });
+</script>
 </body>
 </html>

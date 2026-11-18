@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('购物车')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav}"></header>
+
+<main class="container cart-main">
+    <div class="page-head">
+        <h1><i class="bi bi-cart3" aria-hidden="true"></i> 购物车</h1>
+        <span class="muted" th:if="${cart.kinds() > 0}"
+              th:text="${'共 ' + cart.totalQuantity() + ' 件商品'}"></span>
+    </div>
+
+    <div class="alert alert-error" th:if="${error}" th:text="${error}"></div>
+
+    <div class="empty-state" th:if="${cart.kinds() == 0}">
+        <i class="bi bi-cart-x empty-icon" aria-hidden="true"></i>
+        <p>购物车还是空的</p>
+        <p class="muted">去首页挑选喜欢的商品吧。</p>
+        <a class="button" th:href="@{/}"><i class="bi bi-shop" aria-hidden="true"></i> 去逛逛</a>
+    </div>
+
+    <div class="cart-layout" th:if="${cart.kinds() > 0}">
+        <section class="card cart-list">
+            <article class="cart-row" th:each="line : ${cart.lines()}">
+                <a class="cart-thumb" th:href="@{/products/{id}(id=${line.productId()})}">
+                    <img th:src="${'/' + line.coverImage()}" th:alt="${line.name()}"
+                         onerror="this.src='/images/placeholder.svg'">
+                </a>
+
+                <div class="cart-line-body">
+                    <a class="cart-line-name" th:href="@{/products/{id}(id=${line.productId()})}"
+                       th:text="${line.name()}">商品名称</a>
+                    <div class="cart-line-meta">
+                        <span class="muted"
+                              th:text="${'单价 ¥' + #numbers.formatDecimal(line.price(), 1, 2)}">单价 ¥0.00</span>
+                        <span class="field-error" th:if="${!line.onSale()}">商品已下架</span>
+                        <span class="field-error" th:if="${line.onSale() and !line.stockEnough()}"
+                              th:text="${'库存不足，仅剩 ' + line.stock() + ' 件'}">库存不足</span>
+                    </div>
+                </div>
+
+                <div class="qty-stepper">
+                    <form th:action="@{/cart/items/{id}/quantity(id=${line.productId()})}" method="post">
+                        <input type="hidden" name="quantity" th:value="${line.quantity() - 1}">
+                        <button type="submit" class="step-button" aria-label="减少数量"
+                                th:disabled="${line.quantity() <= 1}">
+                            <i class="bi bi-dash-lg" aria-hidden="true"></i>
+                        </button>
+                    </form>
+                    <span class="qty-value" th:text="${line.quantity()}">1</span>
+                    <form th:action="@{/cart/items/{id}/quantity(id=${line.productId()})}" method="post">
+                        <input type="hidden" name="quantity" th:value="${line.quantity() + 1}">
+                        <button type="submit" class="step-button" aria-label="增加数量"
+                                th:disabled="${line.quantity() >= line.maxQuantity()}">
+                            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="cart-line-amount"
+                     th:text="${'¥' + #numbers.formatDecimal(line.lineAmount(), 1, 2)}">¥0.00</div>
+
+                <form th:action="@{/cart/items/{id}/remove(id=${line.productId()})}" method="post">
+                    <button type="submit" class="icon-button" aria-label="删除">
+                        <i class="bi bi-trash3" aria-hidden="true"></i>
+                    </button>
+                </form>
+            </article>
+        </section>
+
+        <aside class="card cart-summary">
+            <h2>订单摘要</h2>
+            <div class="summary-row">
+                <span>商品种类</span>
+                <span th:text="${cart.kinds()}">0</span>
+            </div>
+            <div class="summary-row">
+                <span>商品件数</span>
+                <span th:text="${cart.totalQuantity()}">0</span>
+            </div>
+            <div class="summary-row summary-total">
+                <span>合计</span>
+                <span th:text="${'¥' + #numbers.formatDecimal(cart.totalAmount(), 1, 2)}">¥0.00</span>
+            </div>
+            <button type="button" class="button button-block" disabled>
+                <i class="bi bi-credit-card" aria-hidden="true"></i> 去结算（订单模块待接入）
+            </button>
+            <p class="muted summary-note">金额按商品当前价格计算，购物车不占用库存。</p>
+        </aside>
+    </div>
+</main>
+</body>
+</html>

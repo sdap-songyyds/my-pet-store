@@ -49,12 +49,14 @@ public class AuthInterceptor implements HandlerInterceptor {
     }
 
     private void redirectToLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String target = request.getRequestURI();
+        String method = request.getMethod();
+        boolean replayable = "GET".equals(method) || "HEAD".equals(method);
+        String target = replayable ? request.getRequestURI() : "/";
         String contextPath = request.getContextPath();
         if (!contextPath.isEmpty() && target.startsWith(contextPath)) {
             target = target.substring(contextPath.length());
         }
-        if (request.getQueryString() != null) {
+        if (replayable && request.getQueryString() != null) {
             target += "?" + request.getQueryString();
         }
         response.sendRedirect(contextPath + "/login?redirect="
