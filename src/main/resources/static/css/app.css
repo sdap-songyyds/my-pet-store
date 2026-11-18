@@ -1434,6 +1434,33 @@ textarea:focus {
     color: var(--danger-dark);
 }
 
+.admin-stock.is-low {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.admin-stock-label {
+    margin-left: 6px;
+    color: var(--danger-dark);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.admin-stock-label.is-low {
+    color: #b45309;
+}
+
+.admin-stock-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+
+.admin-stock-form input[type="number"] {
+    width: 92px;
+}
+
 .admin-product-actions {
     display: flex;
     flex-wrap: wrap;
